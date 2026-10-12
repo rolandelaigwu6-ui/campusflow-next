@@ -2,6 +2,7 @@
 
 from pprint import pprint
 
+from campusflow.exceptions import CampusFlowError
 from campusflow.reports import generate_report, get_work_queue
 from campusflow.workflow import assign_ticket, reopen_ticket, update_status
 
@@ -19,7 +20,7 @@ def main():
     pprint(get_work_queue(tickets))
     try:
         update_status(tickets, "T002", "in_progress")
-    except ValueError as error:
+    except CampusFlowError as error:
         print(f"Expected rejection: {error}")
     assign_ticket(tickets, "T002", "Ada")
     update_status(tickets, "T002", "in_progress")
@@ -28,7 +29,7 @@ def main():
     pprint(generate_report(tickets))
     try:
         assign_ticket(tickets, "T002", "Bola")
-    except ValueError as error:
+    except CampusFlowError as error:
         print(f"Expected rejection: {error}")
     reopen_ticket(tickets, "T002")
     assign_ticket(tickets, "T002", "Bola")

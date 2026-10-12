@@ -1,6 +1,7 @@
 import copy
 import unittest
 
+from campusflow.exceptions import CampusFlowError, InvalidTransitionError, TicketNotFoundError, ValidationError
 from campusflow.workflow import assign_ticket, get_ticket, reopen_ticket, update_status
 
 
@@ -14,7 +15,7 @@ class WorkflowTests(unittest.TestCase):
 
     def assert_rejected_without_mutation(self, function, *args):
         before = copy.deepcopy(self.tickets)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(CampusFlowError):
             function(self.tickets, *args)
         self.assertEqual(self.tickets, before)
 
@@ -89,3 +90,18 @@ class WorkflowTests(unittest.TestCase):
         assign_ticket(self.tickets, "T001", "Bola")
         self.assertEqual(self.tickets[0]["assigned_to"], "Bola")
         self.assertEqual(self.tickets[0]["status"], "in_progress")
+
+    def test_errors_match_shared_cli_exception_contract(self):
+        before = copy.deepcopy(self.tickets)
+        cases = (
+            (TicketNotFoundError, assign_ticket, ('T999', 'Ada')),
+            (ValidationError, assign_ticket, ('T001', ' ')),
+            (ValidationError, update_status, ('T001', 'closed')),
+            (InvalidTransitionError, update_status, ('T001', 'in_progress')),
+        )
+        for expected, operation, args in cases:
+            with self.subTest(operation=operation.__name__, args=args):
+                with self.assertRaises(expected) as caught:
+                    operation(self.tickets, *args)
+                self.assertIsInstance(caught.exception, CampusFlowError)
+                self.assertEqual(self.tickets, before)
