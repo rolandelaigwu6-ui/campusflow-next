@@ -28,9 +28,15 @@ python3 -m unittest discover -s tests -v
 ## Documentation
 * [Architecture & Design Decisions](docs/design-decisions.md)
 * [AI Learning Log](docs/ai-learning-log.md)
-## Integration status
+## Integration Status
 
-Ticket creation and Team B workflow/report modules are integrated on this branch.
-The interactive CLI (`main.py`) and JSON persistence still need implementation.
-The future queue menu should read **Open tickets awaiting work**; in-progress
-tickets remain available through ticket listing and status reports.
+All core features (F1 through F7) and the interactive CLI (`main.py`) are fully implemented and integrated:
+* **F1 — Ticket Creation & Validation:** (`campusflow/tickets.py`)
+* **F2 — List & View Tickets:** (`campusflow/tickets.py`)
+* **F3 — Staff Assignment:** (`campusflow/workflow.py`)
+* **F4 — Lifecycle Transitions & Reopen:** (`campusflow/workflow.py`)
+* **F5 — Open-Ticket Work Queue:** (`campusflow/reports.py`)
+* **F6 — Summary Reports:** (`campusflow/reports.py`)
+* **F7 — JSON Persistence:** (`campusflow/storage.py`)
+* **Interactive CLI Interface:** (`main.py`)
+
