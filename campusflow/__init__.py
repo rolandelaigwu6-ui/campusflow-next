@@ -1,1 +1,1 @@
-"""CampusFlow helpdesk business logic."""
+"""CampusFlow package."""
