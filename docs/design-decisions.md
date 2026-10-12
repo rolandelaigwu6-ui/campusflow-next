@@ -11,9 +11,9 @@ CampusFlow is a Python CLI helpdesk ticket management system.
 * **Engineer 2 (Roland Elaigwu):**
   - F3: Staff Assignment (`campusflow/workflow.py`)
   - F4: Lifecycle Transitions (`open` -> `in_progress` -> `resolved`, reopen) (`campusflow/workflow.py`)
-  - F5: Priority Work Queue (`campusflow/workflow.py`)
+  - F5: Open-Ticket Work Queue (`campusflow/reports.py`)
   - F6: Summary Reports (`campusflow/reports.py`)
-  - Unit tests for lifecycle, assignments, queue ordering, and reports (`tests/test_workflow.py`)
+  - Unit tests for lifecycle, assignments, queue ordering, and reports (`tests/test_workflow.py`, `tests/test_reports.py`)
 * **Shared / Integrated:**
   - F7: JSON Storage & Reload (`campusflow/storage.py`)
   - CLI Interface (`main.py`)
@@ -77,16 +77,19 @@ Defines `CampusFlowError`, `ValidationError`, `TicketNotFoundError`, `InvalidTra
 ### 4.3 Workflow & Queue (`campusflow/workflow.py`)
 * `assign_ticket(tickets: list[dict], ticket_id: str, staff_name: str) -> dict`
   - Assigns `ticket["assigned_to"] = staff_name.strip()`. Raises `TicketNotFoundError` if ID not found, `ValidationError` if `staff_name` is empty.
-* `change_status(tickets: list[dict], ticket_id: str, new_status: str) -> dict`
+* `update_status(tickets: list[dict], ticket_id: str, new_status: str) -> dict`
   - Validates lifecycle transitions:
-    - `open` -> `in_progress` (only allowed if `assigned_to` is not None).
+    - `open` -> `in_progress` (only allowed with a nonblank staff assignment).
     - `in_progress` -> `resolved`.
     - Any edit on `resolved` requires explicit `reopen_ticket`.
     - Raises `InvalidTransitionError` on illegal transition.
 * `reopen_ticket(tickets: list[dict], ticket_id: str) -> dict`
   - Sets `status` back to `open` from `resolved`.
 * `get_work_queue(tickets: list[dict]) -> list[dict]`
-  - Filters tickets where `status != "resolved"`.
+  - Implemented in `campusflow/reports.py`. Filters tickets where `status == "open"`.
+  - This view shows tickets waiting to be started; `in_progress` and `resolved` tickets are excluded.
+  - The future CLI should label this view "Open tickets awaiting work". Use list/view and status reports to inspect work already in progress.
+  - This follows the guide's open-ticket queue acceptance scenario; Issue #2's broader "unresolved" wording needs alignment during partner review.
   - Sorts primarily by priority rank: `critical` (0) -> `high` (1) -> `medium` (2) -> `low` (3).
   - Ties are broken by earlier numeric ticket ID (e.g., `T001` before `T002`).
 

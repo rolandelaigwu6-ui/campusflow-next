@@ -11,7 +11,7 @@ CampusFlow is a Python command-line helpdesk ticket management system designed f
 2. **F2 — List / View:** Displays all tickets and inspects ticket details.
 3. **F3 — Assignment:** Assigns tickets to staff members; validates IDs and non-empty names.
 4. **F4 — Lifecycle Workflow:** Enforces valid transitions (`open` -> `in_progress` -> `resolved`), requires assignment before progress, and explicit reopen for resolved tickets.
-5. **F5 — Work Queue:** Lists unresolved tickets ordered by priority (`critical` -> `high` -> `medium` -> `low`) and breaks ties by ticket ID.
+5. **F5 — Work Queue:** Lists only open tickets awaiting work (excluding in_progress and resolved), ordered by priority (`critical` -> `high` -> `medium` -> `low`) and breaks ties by ticket ID.
 6. **F6 — Reports:** Summarizes total tickets with breakdowns by status and priority.
 7. **F7 — Persistence:** Safe JSON save/load with support for fresh start on missing file and error detection on malformed data.
 
@@ -28,3 +28,9 @@ python3 -m unittest discover -s tests -v
 ## Documentation
 * [Architecture & Design Decisions](docs/design-decisions.md)
 * [AI Learning Log](docs/ai-learning-log.md)
+## Integration status
+
+Ticket creation and Team B workflow/report modules are integrated on this branch.
+The interactive CLI (`main.py`) and JSON persistence still need implementation.
+The future queue menu should read **Open tickets awaiting work**; in-progress
+tickets remain available through ticket listing and status reports.
