@@ -7,6 +7,7 @@ import sys
 from typing import Any, Dict, List, Optional
 
 from campusflow.exceptions import CampusFlowError, StorageError
+from campusflow.understanding_check import run_understanding_check
 from campusflow.reports import generate_report, get_work_queue
 from campusflow.storage import load_tickets, save_tickets
 from campusflow.tickets import create_ticket, get_ticket, list_tickets
@@ -210,9 +211,10 @@ def run_menu(tickets: List[Dict[str, Any]], data_path: str) -> None:
 7. Open Tickets Awaiting Work (F5 Queue)
 8. Generate Summary Report (F6)
 9. Search and Filter Tickets
-10. Save and Exit (F7)
+10. Understanding Check
+11. Save and Exit (F7)
 ======================================================
-Select an option (1-10): """
+Select an option (1-11): """
 
     while True:
         try:
@@ -235,12 +237,14 @@ Select an option (1-10): """
                 handle_generate_report(tickets)
             elif choice == "9":
                 handle_search_tickets(tickets)
-            elif choice in {"10", "exit", "quit", "q"}:
+            elif choice == "10":
+                run_understanding_check()
+            elif choice in {"11", "exit", "quit", "q"}:
                 save_tickets(tickets, data_path)
                 print("\n[CampusFlow] Tickets saved successfully. Goodbye!\n")
                 break
             else:
-                print(f"\n[Warning] Invalid option '{choice}'. Please select a number between 1 and 10.")
+                print(f"\n[Warning] Invalid option '{choice}'. Please select a number between 1 and 11.")
         except CampusFlowError as err:
             print(f"\n[Operation Failed] {err}")
         except (KeyboardInterrupt, EOFError):
