@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from campusflow.exceptions import CampusFlowError, StorageError
 from campusflow.understanding_check import run_understanding_check
+from campusflow.notes import add_note, get_ticket_notes
 from campusflow.reports import generate_report, get_work_queue
 from campusflow.storage import load_tickets, save_tickets
 from campusflow.tickets import create_ticket, get_ticket, list_tickets
@@ -196,6 +197,32 @@ def handle_search_tickets(tickets: List[Dict[str, Any]]) -> None:
     print(f"\nMatching tickets: {len(results)}")
 
 
+
+def handle_add_note(tickets: List[Dict[str, Any]], data_path: str) -> None:
+    """Add a validated follow-up note to an existing ticket."""
+    ticket_id = input("Ticket ID: ").strip()
+    author = input("Your name: ").strip()
+    message = input("Follow-up note (5-300 characters): ")
+
+    note = add_note(tickets, ticket_id, author, message)
+    save_tickets(tickets, data_path)
+    print(f"Note {note['note_id']} added to ticket {ticket_id.strip().upper()}.")
+
+
+def handle_view_notes(tickets: List[Dict[str, Any]]) -> None:
+    """Display a ticket's follow-up notes."""
+    ticket_id = input("Ticket ID: ").strip()
+    notes = get_ticket_notes(tickets, ticket_id)
+
+    if not notes:
+        print(f"No follow-up notes for ticket {ticket_id.strip().upper()}.")
+        return
+
+    print(f"\\nFollow-up notes for {ticket_id.strip().upper()}:")
+    for note in notes:
+        print(f"[{note['note_id']}] {note['author']}: {note['message']}")
+
+
 def run_menu(tickets: List[Dict[str, Any]], data_path: str) -> None:
     """Main CLI menu interaction loop."""
     menu = """
@@ -212,9 +239,11 @@ def run_menu(tickets: List[Dict[str, Any]], data_path: str) -> None:
 8. Generate Summary Report (F6)
 9. Search and Filter Tickets
 10. Understanding Check
-11. Save and Exit (F7)
+11. Add Follow-up Note
+12. View Ticket Notes
+13. Save and Exit (F7)
 ======================================================
-Select an option (1-11): """
+Select an option (1-13): """
 
     while True:
         try:
@@ -239,12 +268,16 @@ Select an option (1-11): """
                 handle_search_tickets(tickets)
             elif choice == "10":
                 run_understanding_check()
-            elif choice in {"11", "exit", "quit", "q"}:
+            elif choice == "11":
+                handle_add_note(tickets, data_path)
+            elif choice == "12":
+                handle_view_notes(tickets)
+            elif choice in {"13", "exit", "quit", "q"}:
                 save_tickets(tickets, data_path)
                 print("\n[CampusFlow] Tickets saved successfully. Goodbye!\n")
                 break
             else:
-                print(f"\n[Warning] Invalid option '{choice}'. Please select a number between 1 and 11.")
+                print(f"\n[Warning] Invalid option '{choice}'. Please select a number between 1 and 13.")
         except CampusFlowError as err:
             print(f"\n[Operation Failed] {err}")
         except (KeyboardInterrupt, EOFError):
