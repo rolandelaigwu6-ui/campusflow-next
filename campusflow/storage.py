@@ -97,25 +97,31 @@ def load_tickets(filepath: str) -> List[Dict[str, Any]]:
             f"Invalid ticket data in '{filepath}': Expected a list of tickets, got {type(data).__name__}."
         )
 
-    # Validate full collection before returning
+    # Work on copies: a failed validation must not leave partially migrated
+    # decoded records behind, and the caller receives data only after all pass.
+    validated_data = []
     seen_ticket_ids = set()
+
     for idx, item in enumerate(data):
         if not isinstance(item, dict):
             raise StorageError(
                 f"Invalid ticket data in '{filepath}' at index {idx}: Expected a ticket dictionary, got {type(item).__name__}."
             )
 
-        # Backward compatibility migration: ensure 'notes' key is present
-        if "notes" not in item:
-            item["notes"] = []
+        ticket = dict(item)
 
-        validate_ticket_dict(item, calculate_priority_fn=calculate_priority)
+        # Backward compatibility migration: ensure 'notes' key is present.
+        if "notes" not in ticket:
+            ticket["notes"] = []
 
-        tid = item["id"]
+        validate_ticket_dict(ticket, calculate_priority_fn=calculate_priority)
+
+        tid = ticket["id"]
         if tid in seen_ticket_ids:
             raise StorageError(
                 f"Corrupted ticket file '{filepath}': Duplicate ticket ID '{tid}' found."
             )
         seen_ticket_ids.add(tid)
+        validated_data.append(ticket)
 
-    return data
+    return validated_data

@@ -208,6 +208,76 @@ class StorageTests(unittest.TestCase):
             "A failed load must not mutate the caller's existing ticket list.",
         )
 
+    def test_failed_load_validates_migrated_copies(self):
+        """Legacy migration is applied to copies, not decoded source records."""
+        from unittest.mock import patch
+        from campusflow import storage
+
+        data = [
+            {
+                "id": "T001",
+                "title": "Valid legacy ticket",
+                "category": "Software",
+                "urgency": "low",
+                "affected_users": 1,
+                "priority": "low",
+                "status": "open",
+                "assigned_to": None,
+            },
+            {
+                "id": "T002",
+                "title": "Invalid ticket",
+                "category": "InvalidCategory",
+                "urgency": "low",
+                "affected_users": 1,
+                "priority": "low",
+                "status": "open",
+                "assigned_to": None,
+            },
+        ]
+        with open(self.storage_file, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+
+        original_validate = storage.validate_ticket_dict
+        validated_records = []
+
+        def record_validation(ticket, **kwargs):
+            validated_records.append(ticket)
+            return original_validate(ticket, **kwargs)
+
+        with patch(
+            "campusflow.storage.validate_ticket_dict",
+            side_effect=record_validation,
+        ):
+            with self.assertRaises(StorageError):
+                load_tickets(self.storage_file)
+
+        # Both records were copied and migrated before validation.
+        self.assertEqual(len(validated_records), 2)
+        self.assertTrue(all("notes" in ticket for ticket in validated_records))
+        self.assertIsNot(validated_records[0], data[0])
+        self.assertIsNot(validated_records[1], data[1])
+
+    def test_legacy_ticket_without_notes_is_migrated_on_successful_load(self):
+        """A valid legacy ticket receives an empty notes list when loaded."""
+        legacy_ticket = {
+            "id": "T001",
+            "title": "Legacy ticket",
+            "category": "Software",
+            "urgency": "low",
+            "affected_users": 1,
+            "priority": "low",
+            "status": "open",
+            "assigned_to": None,
+        }
+        with open(self.storage_file, "w", encoding="utf-8") as f:
+            json.dump([legacy_ticket], f)
+
+        loaded = load_tickets(self.storage_file)
+
+        self.assertEqual(loaded[0]["notes"], [])
+        self.assertNotIn("notes", legacy_ticket)
+
     def test_bug_hunter_priority_inconsistency_rejected(self):
         """Bug-Hunter (Engineer A): Detects maliciously tampered priority in storage.
 

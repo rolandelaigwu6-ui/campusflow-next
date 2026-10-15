@@ -105,9 +105,12 @@ def add_note(
     # Validate note author and message
     cleaned = validate_note_input(author, msg)
 
-    # Initialize notes list if absent (backward compatibility)
-    if "notes" not in ticket or not isinstance(ticket["notes"], list):
+    # Older tickets may omit notes, but malformed existing data must not
+    # be silently discarded.
+    if "notes" not in ticket:
         ticket["notes"] = []
+    elif not isinstance(ticket["notes"], list):
+        raise ValidationError("Ticket notes must be a list.")
 
     note_id = next_note_id(ticket)
     new_note: Dict[str, Any] = {
