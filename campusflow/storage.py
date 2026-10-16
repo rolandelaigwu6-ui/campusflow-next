@@ -2,12 +2,30 @@
 
 import json
 import os
+import shutil
 import tempfile
+from datetime import datetime
 from typing import Any, Dict, List
 
 from campusflow.exceptions import StorageError
 from campusflow.tickets import calculate_priority
 from campusflow.validation import validate_ticket_dict
+
+
+def _create_timestamped_backup(filepath: str) -> None:
+    """Preserve an existing ticket file before it is replaced."""
+    if not os.path.isfile(filepath):
+        return
+
+    directory = os.path.dirname(filepath) or "."
+    backup_dir = os.path.join(directory, "backups")
+    os.makedirs(backup_dir, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    filename = f"{os.path.basename(filepath)}-{timestamp}.json"
+    backup_path = os.path.join(backup_dir, filename)
+
+    shutil.copy2(filepath, backup_path)
 
 
 def save_tickets(tickets: List[Dict[str, Any]], filepath: str) -> None:
@@ -22,6 +40,29 @@ def save_tickets(tickets: List[Dict[str, Any]], filepath: str) -> None:
     """
     if not isinstance(tickets, list):
         raise StorageError("Tickets must be provided as a list.")
+
+    # Protect existing tickets from accidental empty saves.
+    if not tickets and os.path.exists(filepath):
+        try:
+            with open(filepath, "r", encoding="utf-8") as existing_file:
+                existing_data = json.load(existing_file)
+        except (OSError, json.JSONDecodeError, UnicodeError) as e:
+            raise StorageError(
+                f"Refusing to overwrite existing file '{filepath}' "
+                f"with an empty list because its contents cannot be safely checked: {e}"
+            ) from e
+
+        if not isinstance(existing_data, list):
+            raise StorageError(
+                f"Refusing to overwrite '{filepath}' with an empty list: "
+                "the existing file does not contain a ticket list."
+            )
+
+        if existing_data:
+            raise StorageError(
+                f"Refusing to overwrite '{filepath}' with an empty list "
+                "because it already contains tickets."
+            )
 
     # Validate all tickets before saving to ensure state integrity
     seen_ids = set()
@@ -49,6 +90,7 @@ def save_tickets(tickets: List[Dict[str, Any]], filepath: str) -> None:
             temp_file.flush()
             os.fsync(temp_file.fileno())
             temp_file.close()
+            _create_timestamped_backup(filepath)
             os.replace(temp_file.name, filepath)
         except Exception:
             if os.path.exists(temp_file.name):
