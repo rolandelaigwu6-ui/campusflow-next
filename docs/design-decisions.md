@@ -38,7 +38,7 @@ Each ticket is represented as a Python dictionary:
         {
             "note_id": "N001", # Sequential per-ticket note ID: "N001", "N002", ...
             "author": "Ada",   # Non-blank string
-            "message": "text"  # Trimmed string between 5 and 300 characters
+            "message": "Router checked"  # Trimmed string between 5 and 300 characters
         }
     ]
 }
@@ -137,3 +137,20 @@ Defines `CampusFlowError`, `ValidationError`, `TicketNotFoundError`, `InvalidTra
 
 ### 4.9 Testing Isolation
 All business functions accept pure data arguments (`tickets: list[dict]`, strings, ints) and return dicts or raise exceptions. No business logic functions invoke `input()` or `print()`. This allows fast, deterministic automated testing in `unittest`.
+
+
+## Reliability contract update — 2026-10-16
+
+Ticket creation now calls the centralized title/category/urgency/count helpers.
+`validate_affected_users` defaults to `strict=True`; the explicit `strict=False`
+compatibility option is retained but is not used by ticket creation. CLI count
+conversion is confined to `handle_create_ticket`. Assignment uses
+`validate_staff_name`, and status advancement uses `validate_transition`.
+Public function signatures and exception classes are preserved.
+
+`validate_ticket_dict` requires `notes` to be a list; only the loader migrates a
+missing legacy key. Stored ticket/note IDs require uppercase prefixes and positive
+ASCII digits, preserving existing padding. Status and priority types are checked
+before set membership. Invalid UTF-8 is reported as `StorageError`.
+
+See `engineer-a-verification.md` for tests and partner integration considerations.

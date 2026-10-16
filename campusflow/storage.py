@@ -85,6 +85,8 @@ def load_tickets(filepath: str) -> List[Dict[str, Any]]:
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
+    except UnicodeError as e:
+        raise StorageError(f"Cannot decode ticket file as UTF-8: {e}") from e
     except json.JSONDecodeError as e:
         raise StorageError(
             f"Corrupted ticket file '{filepath}': Malformed JSON (line {e.lineno}, col {e.colno})."

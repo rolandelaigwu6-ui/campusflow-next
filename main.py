@@ -6,7 +6,7 @@ Entry point for the interactive command-line interface.
 import sys
 from typing import Any, Dict, List, Optional
 
-from campusflow.exceptions import CampusFlowError, StorageError
+from campusflow.exceptions import CampusFlowError, StorageError, ValidationError
 from campusflow.understanding_check import run_understanding_check
 from campusflow.notes import add_note, get_ticket_notes
 from campusflow.reports import generate_report, get_work_queue
@@ -60,12 +60,17 @@ def handle_create_ticket(tickets: List[Dict[str, Any]], data_path: str) -> None:
     urgency = input("Enter urgency (low, medium, high): ").strip()
     affected_users_input = input("Enter number of affected users: ").strip()
 
+    try:
+        affected_users = int(affected_users_input)
+    except ValueError as err:
+        raise ValidationError("Affected users must be a positive whole number.") from err
+
     ticket = create_ticket(
         tickets=tickets,
         title=title,
         category=category,
         urgency=urgency,
-        affected_users=affected_users_input,
+        affected_users=affected_users,
     )
     save_tickets(tickets, data_path)
     print(f"\n[Success] Created Ticket {ticket['id']} with Priority '{ticket['priority'].upper()}'.")
