@@ -3,73 +3,21 @@
 from typing import Any, Dict, List, Optional
 from campusflow.exceptions import TicketNotFoundError, ValidationError
 
-ALLOWED_CATEGORIES = {
-    "network": "Network",
-    "hardware": "Hardware",
-    "software": "Software",
-    "other": "Other",
-}
-
-ALLOWED_URGENCIES = {
-    "low": "low",
-    "medium": "medium",
-    "high": "high",
-}
+from campusflow.validation import (
+    ALLOWED_CATEGORIES, ALLOWED_URGENCIES, validate_title,
+    validate_category, validate_urgency, validate_affected_users,
+)
 
 
 def validate_ticket_input(
     title: Any, category: Any, urgency: Any, affected_users: Any
 ) -> Dict[str, Any]:
-    """Validate and normalize ticket input fields.
-
-    Raises:
-        ValidationError: If any field fails validation.
-
-    Returns:
-        Dict with normalized fields: title, category, urgency, affected_users.
-    """
-    if not isinstance(title, str) or not title.strip():
-        raise ValidationError("Title must not be blank.")
-    normalized_title = title.strip()
-
-    if not isinstance(category, str) or category.strip().lower() not in ALLOWED_CATEGORIES:
-        valid_opts = ", ".join(ALLOWED_CATEGORIES.values())
-        raise ValidationError(
-            f"Invalid category '{category}'. Allowed categories: {valid_opts}."
-        )
-    normalized_category = ALLOWED_CATEGORIES[category.strip().lower()]
-
-    if not isinstance(urgency, str) or urgency.strip().lower() not in ALLOWED_URGENCIES:
-        valid_opts = ", ".join(ALLOWED_URGENCIES.values())
-        raise ValidationError(
-            f"Invalid urgency '{urgency}'. Allowed urgencies: {valid_opts}."
-        )
-    normalized_urgency = ALLOWED_URGENCIES[urgency.strip().lower()]
-
-    if isinstance(affected_users, bool):
-        raise ValidationError("affected_users must be a positive integer.")
-    elif isinstance(affected_users, float):
-        raise ValidationError("affected_users must be a positive integer (not a decimal).")
-    elif isinstance(affected_users, int):
-        user_count = affected_users
-    elif isinstance(affected_users, str):
-        cleaned = affected_users.strip()
-        if not cleaned.isdigit() and not (cleaned.startswith("+") and cleaned[1:].isdigit()):
-            raise ValidationError("affected_users must be a positive integer.")
-        user_count = int(cleaned)
-    else:
-        raise ValidationError("affected_users must be a positive integer.")
-
-    if user_count <= 0:
-        raise ValidationError(
-            "affected_users must be a positive integer (greater than zero)."
-        )
-
+    """Validate domain inputs before mutation; affected_users must be an integer."""
     return {
-        "title": normalized_title,
-        "category": normalized_category,
-        "urgency": normalized_urgency,
-        "affected_users": user_count,
+        "title": validate_title(title),
+        "category": validate_category(category),
+        "urgency": validate_urgency(urgency),
+        "affected_users": validate_affected_users(affected_users),
     }
 
 
@@ -141,6 +89,7 @@ def create_ticket(
         "priority": priority,
         "status": "open",
         "assigned_to": None,
+        "notes": [],
     }
 
     tickets.append(ticket)

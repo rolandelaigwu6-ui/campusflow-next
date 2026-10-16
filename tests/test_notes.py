@@ -112,6 +112,27 @@ class TestFollowUpNotes(unittest.TestCase):
         self.assertEqual(len(self.tickets[0]["notes"]), 3)
         self.assertEqual([n["note_id"] for n in self.tickets[0]["notes"]], ["N001", "N002", "N003"])
 
+    def test_malformed_notes_rejected_without_mutation(self):
+        """Adding a note must not overwrite malformed existing notes data."""
+        ticket = dict(self.tickets[0])
+        ticket["notes"] = {"existing": "data"}
+        before = copy.deepcopy(ticket)
+
+        with self.assertRaises(ValidationError):
+            add_note(ticket, "Ada", "Investigating the issue")
+
+        self.assertEqual(ticket, before)
+
+    def test_missing_notes_key_is_initialized_for_legacy_ticket(self):
+        """A legacy ticket with no notes key can still receive a note."""
+        ticket = dict(self.tickets[0])
+        del ticket["notes"]
+
+        note = add_note(ticket, "Ada", "Investigating the issue")
+
+        self.assertEqual(note["note_id"], "N001")
+        self.assertEqual(ticket["notes"], [note])
+
     def test_get_ticket_notes_in_deterministic_order(self):
         """Reading notes for a ticket returns all notes in sequential ID order."""
         add_note(self.tickets, "T001", "Ada", "Note number one")

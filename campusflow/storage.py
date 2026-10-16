@@ -1,4 +1,4 @@
-"""JSON storage and persistence for CampusFlow."""
+"""JSON storage and safe persistence for CampusFlow Next."""
 
 import json
 import os
@@ -6,20 +6,42 @@ import tempfile
 from typing import Any, Dict, List
 
 from campusflow.exceptions import StorageError
+from campusflow.tickets import calculate_priority
+from campusflow.validation import validate_ticket_dict
 
 
 def save_tickets(tickets: List[Dict[str, Any]], filepath: str) -> None:
-    """Atomically save the list of tickets to a JSON file.
+    """Atomically save tickets, rejecting empty replacement of existing records.
 
     Args:
         tickets: List of ticket dictionaries.
         filepath: Target file path.
 
     Raises:
-        StorageError: If the directory cannot be created or file writing fails.
+        StorageError: If the directory cannot be created, data is malformed, or writing fails.
     """
     if not isinstance(tickets, list):
         raise StorageError("Tickets must be provided as a list.")
+
+    # Validate all tickets before saving to ensure state integrity
+    seen_ids = set()
+    for idx, ticket in enumerate(tickets):
+        validate_ticket_dict(ticket, calculate_priority_fn=calculate_priority)
+        tid = ticket["id"]
+        if tid in seen_ids:
+            raise StorageError(f"Cannot save tickets: Duplicate ticket ID '{tid}' detected.")
+        seen_ids.add(tid)
+
+    # There is no delete-all operation in CampusFlow. An empty collection may
+    # initialize a fresh file or resave an empty project, but must not erase
+    # existing tickets. Validate existing data before allowing empty replacement;
+    # malformed/unreadable files are preserved and reported through StorageError.
+    if not tickets and os.path.exists(filepath):
+        if load_tickets(filepath):
+            raise StorageError(
+                "Refusing to overwrite existing tickets with an empty collection. "
+                "Restart the application to reload the saved tickets."
+            )
 
     dir_name = os.path.dirname(filepath)
     if dir_name:
@@ -53,20 +75,20 @@ def save_tickets(tickets: List[Dict[str, Any]], filepath: str) -> None:
 
 
 def load_tickets(filepath: str) -> List[Dict[str, Any]]:
-    """Load tickets from a JSON file.
+    """Load tickets from a JSON file with full collection validation.
 
     If the file does not exist, returns an empty list for a fresh start.
-    If the file exists but contains corrupted or invalid JSON, raises StorageError
-    without deleting the file.
+    If the file exists but contains corrupted JSON, invalid records, duplicate IDs,
+    or schema violations, raises StorageError without modifying the file or in-memory state.
 
     Args:
         filepath: Target file path.
 
     Returns:
-        List of ticket dictionaries.
+        List of validated ticket dictionaries.
 
     Raises:
-        StorageError: If the file is unreadable or malformed.
+        StorageError: If the file is unreadable, malformed, or fails collection validation.
     """
     if not os.path.exists(filepath):
         return []
@@ -74,6 +96,8 @@ def load_tickets(filepath: str) -> List[Dict[str, Any]]:
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
+    except UnicodeError as e:
+        raise StorageError(f"Cannot decode ticket file as UTF-8: {e}") from e
     except json.JSONDecodeError as e:
         raise StorageError(
             f"Corrupted ticket file '{filepath}': Malformed JSON (line {e.lineno}, col {e.colno})."
@@ -86,10 +110,31 @@ def load_tickets(filepath: str) -> List[Dict[str, Any]]:
             f"Invalid ticket data in '{filepath}': Expected a list of tickets, got {type(data).__name__}."
         )
 
+    # Work on copies: a failed validation must not leave partially migrated
+    # decoded records behind, and the caller receives data only after all pass.
+    validated_data = []
+    seen_ticket_ids = set()
+
     for idx, item in enumerate(data):
         if not isinstance(item, dict):
             raise StorageError(
                 f"Invalid ticket data in '{filepath}' at index {idx}: Expected a ticket dictionary, got {type(item).__name__}."
             )
 
-    return data
+        ticket = dict(item)
+
+        # Backward compatibility migration: ensure 'notes' key is present.
+        if "notes" not in ticket:
+            ticket["notes"] = []
+
+        validate_ticket_dict(ticket, calculate_priority_fn=calculate_priority)
+
+        tid = ticket["id"]
+        if tid in seen_ticket_ids:
+            raise StorageError(
+                f"Corrupted ticket file '{filepath}': Duplicate ticket ID '{tid}' found."
+            )
+        seen_ticket_ids.add(tid)
+        validated_data.append(ticket)
+
+    return validated_data

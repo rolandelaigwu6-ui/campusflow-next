@@ -6,7 +6,7 @@ Entry point for the interactive command-line interface.
 import sys
 from typing import Any, Dict, List, Optional
 
-from campusflow.exceptions import CampusFlowError, StorageError
+from campusflow.exceptions import CampusFlowError, StorageError, ValidationError
 from campusflow.understanding_check import run_understanding_check
 from campusflow.notes import add_note, get_ticket_notes
 from campusflow.reports import generate_report, get_work_queue
@@ -20,12 +20,14 @@ DEFAULT_DATA_FILE = "data/tickets.json"
 def display_ticket_summary(ticket: Dict[str, Any]) -> None:
     """Print a one-line summary of a ticket."""
     assigned = ticket.get("assigned_to") or "Unassigned"
+    notes_count = len(ticket.get("notes", []))
     print(
         f"[{ticket['id']}] {ticket['title']} "
         f"| Priority: {ticket['priority'].upper()} "
         f"| Status: {ticket['status']} "
         f"| Assigned: {assigned} "
-        f"| Category: {ticket['category']}"
+        f"| Category: {ticket['category']} "
+        f"| Notes: {notes_count}"
     )
 
 
@@ -40,6 +42,13 @@ def display_ticket_detail(ticket: Dict[str, Any]) -> None:
     print(f"Priority:       {ticket['priority'].upper()}")
     print(f"Status:         {ticket['status']}")
     print(f"Assigned To:    {ticket.get('assigned_to') or 'None (Unassigned)'}")
+    notes = ticket.get("notes", [])
+    if notes:
+        print(f"\nFollow-up Notes ({len(notes)}):")
+        for n in notes:
+            print(f"  * [{n['note_id']}] {n['author']}: {n['message']}")
+    else:
+        print("Follow-up Notes: None")
     print("=" * 48)
 
 
@@ -51,12 +60,17 @@ def handle_create_ticket(tickets: List[Dict[str, Any]], data_path: str) -> None:
     urgency = input("Enter urgency (low, medium, high): ").strip()
     affected_users_input = input("Enter number of affected users: ").strip()
 
+    try:
+        affected_users = int(affected_users_input)
+    except ValueError as err:
+        raise ValidationError("Affected users must be a positive whole number.") from err
+
     ticket = create_ticket(
         tickets=tickets,
         title=title,
         category=category,
         urgency=urgency,
-        affected_users=affected_users_input,
+        affected_users=affected_users,
     )
     save_tickets(tickets, data_path)
     print(f"\n[Success] Created Ticket {ticket['id']} with Priority '{ticket['priority'].upper()}'.")
@@ -198,15 +212,6 @@ def handle_search_tickets(tickets: List[Dict[str, Any]]) -> None:
 
 
 
-def handle_add_note(tickets: List[Dict[str, Any]], data_path: str) -> None:
-    """Add a validated follow-up note to an existing ticket."""
-    ticket_id = input("Ticket ID: ").strip()
-    author = input("Your name: ").strip()
-    message = input("Follow-up note (5-300 characters): ")
-
-    note = add_note(tickets, ticket_id, author, message)
-    save_tickets(tickets, data_path)
-    print(f"Note {note['note_id']} added to ticket {ticket_id.strip().upper()}.")
 
 
 def handle_view_notes(tickets: List[Dict[str, Any]]) -> None:
@@ -218,9 +223,23 @@ def handle_view_notes(tickets: List[Dict[str, Any]]) -> None:
         print(f"No follow-up notes for ticket {ticket_id.strip().upper()}.")
         return
 
-    print(f"\\nFollow-up notes for {ticket_id.strip().upper()}:")
+    print(f"\nFollow-up notes for {ticket_id.strip().upper()}:")
     for note in notes:
         print(f"[{note['note_id']}] {note['author']}: {note['message']}")
+
+
+def handle_add_note(tickets: List[Dict[str, Any]], data_path: str) -> None:
+    """Prompt the user and add a structured follow-up note to an active ticket."""
+    print("\n--- Add Follow-up Note ---")
+    ticket_id = input("Enter ticket ID: ").strip()
+    author = input("Enter your name/role (Author): ").strip()
+    message = input("Enter follow-up message (5-300 characters): ").strip()
+    note = add_note(tickets, ticket_id, author, message)
+    save_tickets(tickets, data_path)
+    print(
+        f"\n[Success] Added Note '{note['note_id']}' by '{note['author']}' "
+        f"to Ticket {ticket_id.upper()}."
+    )
 
 
 def run_menu(tickets: List[Dict[str, Any]], data_path: str) -> None:
@@ -298,8 +317,11 @@ def main() -> None:
         print(f"[CampusFlow] Loaded {len(tickets)} ticket(s) from '{data_path}'.")
     except StorageError as err:
         print(f"[CampusFlow Warning] {err}")
-        print("[CampusFlow] Starting with an empty in-memory collection to preserve existing data.")
-        tickets = []
+        print(
+            "[CampusFlow] Startup stopped to protect existing data. "
+            "Fix the storage file and restart."
+        )
+        return
 
     run_menu(tickets, data_path)
 

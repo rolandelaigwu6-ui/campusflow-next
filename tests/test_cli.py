@@ -3,7 +3,8 @@ from unittest.mock import patch
 from io import StringIO
 from contextlib import redirect_stdout
 
-from main import handle_search_tickets
+from main import handle_search_tickets, main
+from campusflow.exceptions import StorageError
 
 
 def make_ticket():
@@ -51,6 +52,21 @@ class SearchCliTests(unittest.TestCase):
 
         self.assertIn(
             "No tickets matched your search and filters.",
+            output.getvalue(),
+        )
+
+
+    def test_startup_stops_when_storage_cannot_be_loaded(self):
+        output = StringIO()
+
+        with patch("main.load_tickets", side_effect=StorageError("Invalid JSON")):
+            with patch("main.run_menu") as mocked_menu:
+                with redirect_stdout(output):
+                    main()
+
+        mocked_menu.assert_not_called()
+        self.assertIn(
+            "Startup stopped to protect existing data",
             output.getvalue(),
         )
 
