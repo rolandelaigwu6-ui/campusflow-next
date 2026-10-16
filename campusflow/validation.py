@@ -47,7 +47,7 @@ def validate_urgency(urgency: Any) -> str:
     return ALLOWED_URGENCIES[urgency.strip().lower()]
 
 
-def validate_affected_users(affected_users: Any, strict: bool = False) -> int:
+def validate_affected_users(affected_users: Any, strict: bool = True) -> int:
     """Validate affected_users count.
 
     Must be a strictly positive integer (> 0).
@@ -71,7 +71,10 @@ def validate_affected_users(affected_users: Any, strict: bool = False) -> int:
         cleaned = affected_users.strip()
         if not cleaned.isdigit() and not (cleaned.startswith("+") and cleaned[1:].isdigit()):
             raise ValidationError("affected_users must be a positive integer.")
-        user_count = int(cleaned)
+        try:
+            user_count = int(cleaned)
+        except ValueError as err:
+            raise ValidationError("affected_users must be a positive integer.") from err
     else:
         raise ValidationError("affected_users must be a positive integer.")
 
@@ -138,6 +141,19 @@ def validate_transition(ticket: Dict[str, Any], target_status: str) -> str:
     return normalized
 
 
+def validate_record_id(value: Any, prefix: str) -> str:
+    """Require an uppercase prefix and a positive ASCII numeric suffix.
+
+    Existing numeric padding is preserved; new IDs use at least three digits.
+    Lookup input may be normalized separately; persisted IDs must be canonical.
+    """
+    if (not isinstance(value, str) or not value.startswith(prefix)
+            or not value[1:] or not value[1:].isascii()
+            or not value[1:].isdigit() or int(value[1:]) <= 0):
+        raise StorageError(f"Invalid ID '{value}': expected {prefix} followed by ASCII digits, greater than zero.")
+    return value
+
+
 def validate_ticket_dict(ticket: Dict[str, Any], calculate_priority_fn: Optional[Any] = None) -> None:
     """Validate the complete internal schema and integrity of a single ticket dictionary.
 
@@ -147,15 +163,14 @@ def validate_ticket_dict(ticket: Dict[str, Any], calculate_priority_fn: Optional
     if not isinstance(ticket, dict):
         raise StorageError(f"Expected ticket dictionary, got {type(ticket).__name__}.")
 
-    required_keys = {"id", "title", "category", "urgency", "affected_users", "priority", "status", "assigned_to"}
+    required_keys = {"id", "title", "category", "urgency", "affected_users", "priority", "status", "assigned_to", "notes"}
     missing = required_keys - set(ticket.keys())
     if missing:
         raise StorageError(f"Ticket {ticket.get('id', '?')} is missing required fields: {', '.join(sorted(missing))}.")
 
     # ID validation
     tid = ticket["id"]
-    if not isinstance(tid, str) or not tid.strip().upper().startswith("T") or not tid.strip()[1:].isdigit():
-        raise StorageError(f"Invalid ticket ID format '{tid}'. Must be 'T' followed by digits.")
+    validate_record_id(tid, "T")
 
     # Title
     if not isinstance(ticket["title"], str) or not ticket["title"].strip():
@@ -176,12 +191,12 @@ def validate_ticket_dict(ticket: Dict[str, Any], calculate_priority_fn: Optional
 
     # Status
     status = ticket["status"]
-    if status not in ALLOWED_STATUSES:
+    if not isinstance(status, str) or status not in ALLOWED_STATUSES:
         raise StorageError(f"Ticket {tid} has invalid status '{status}'.")
 
     # Priority
     priority = ticket["priority"]
-    if priority not in ALLOWED_PRIORITIES:
+    if not isinstance(priority, str) or priority not in ALLOWED_PRIORITIES:
         raise StorageError(f"Ticket {tid} has invalid priority '{priority}'.")
 
     if calculate_priority_fn:
@@ -200,10 +215,10 @@ def validate_ticket_dict(ticket: Dict[str, Any], calculate_priority_fn: Optional
         raise StorageError(f"Ticket {tid} is in_progress but has no assigned staff member.")
 
     # Notes validation
-    notes = ticket.get("notes")
-    if notes is not None:
-        if not isinstance(notes, list):
-            raise StorageError(f"Ticket {tid} notes must be a list.")
+    notes = ticket["notes"]
+    if not isinstance(notes, list):
+        raise StorageError(f"Ticket {tid} notes must be a list.")
+    if notes:
         seen_note_ids = set()
         for idx, note in enumerate(notes):
             if not isinstance(note, dict):
@@ -212,8 +227,7 @@ def validate_ticket_dict(ticket: Dict[str, Any], calculate_priority_fn: Optional
                 if key not in note:
                     raise StorageError(f"Ticket {tid} note at index {idx} missing key '{key}'.")
             nid = note["note_id"]
-            if not isinstance(nid, str) or not nid.strip().upper().startswith("N") or not nid.strip()[1:].isdigit():
-                raise StorageError(f"Ticket {tid} note at index {idx} has invalid note_id '{nid}'.")
+            validate_record_id(nid, "N")
             if nid in seen_note_ids:
                 raise StorageError(f"Ticket {tid} has duplicate note ID '{nid}'.")
             seen_note_ids.add(nid)

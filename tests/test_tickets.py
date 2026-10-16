@@ -88,7 +88,7 @@ class TestTicketValidation(unittest.TestCase):
 
     def test_normalize_valid_inputs(self):
         validated = validate_ticket_input(
-            "  Server lag  ", "network", "HIGH", "15"
+            "  Server lag  ", "network", "HIGH", 15
         )
         self.assertEqual(validated["title"], "Server lag")
         self.assertEqual(validated["category"], "Network")
