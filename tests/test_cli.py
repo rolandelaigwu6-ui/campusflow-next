@@ -1,4 +1,6 @@
 import unittest
+import tempfile
+from pathlib import Path
 from unittest.mock import patch
 from io import StringIO
 from contextlib import redirect_stdout
@@ -73,3 +75,42 @@ class SearchCliTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StartupPersistenceTests(unittest.TestCase):
+    def test_fresh_start_creates_file_and_displays_location(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "data" / "tickets.json"
+            output = StringIO()
+            with patch("main.DEFAULT_DATA_FILE", path), patch("main.run_menu") as menu:
+                with redirect_stdout(output):
+                    main()
+            self.assertEqual(path.read_text(), "[]")
+            menu.assert_called_once_with([], path.resolve())
+            self.assertIn(str(path.resolve()), output.getvalue())
+            self.assertIn("new empty ticket file", output.getvalue())
+
+    def test_restart_loads_existing_records_without_replacing_file(self):
+        from campusflow.tickets import create_ticket
+        from campusflow.storage import save_tickets
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "tickets.json"
+            tickets = []
+            create_ticket(tickets, "Saved issue", "Other", "low", 1)
+            save_tickets(tickets, path)
+            source = path.read_bytes()
+            with patch("main.DEFAULT_DATA_FILE", path), patch("main.run_menu") as menu:
+                with redirect_stdout(StringIO()):
+                    main()
+            menu.assert_called_once_with(tickets, path.resolve())
+            self.assertEqual(path.read_bytes(), source)
+
+    def test_corrupt_file_is_preserved_on_startup(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "tickets.json"
+            path.write_text("broken JSON")
+            with patch("main.DEFAULT_DATA_FILE", path), patch("main.run_menu") as menu:
+                with redirect_stdout(StringIO()):
+                    main()
+            menu.assert_not_called()
+            self.assertEqual(path.read_text(), "broken JSON")

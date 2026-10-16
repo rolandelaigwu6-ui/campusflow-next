@@ -4,6 +4,7 @@ Entry point for the interactive command-line interface.
 """
 
 import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from campusflow.exceptions import CampusFlowError, StorageError, ValidationError
@@ -14,7 +15,7 @@ from campusflow.storage import load_tickets, save_tickets
 from campusflow.tickets import create_ticket, get_ticket, list_tickets
 from campusflow.workflow import assign_ticket, reopen_ticket, update_status
 
-DEFAULT_DATA_FILE = "data/tickets.json"
+DEFAULT_DATA_FILE = Path(__file__).resolve().parent / "data" / "tickets.json"
 
 
 def display_ticket_summary(ticket: Dict[str, Any]) -> None:
@@ -311,8 +312,11 @@ Select an option (1-13): """
 
 def main() -> None:
     """CLI application entrypoint."""
-    data_path = DEFAULT_DATA_FILE
+    data_path = Path(DEFAULT_DATA_FILE).resolve()
     try:
+        if not data_path.exists():
+            save_tickets([], data_path)
+            print(f"[CampusFlow] Created a new empty ticket file at '{data_path}'.")
         tickets = load_tickets(data_path)
         print(f"[CampusFlow] Loaded {len(tickets)} ticket(s) from '{data_path}'.")
     except StorageError as err:
