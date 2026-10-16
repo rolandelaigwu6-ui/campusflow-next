@@ -4,6 +4,7 @@ Entry point for the interactive command-line interface.
 """
 
 import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from campusflow.exceptions import CampusFlowError, StorageError, ValidationError
@@ -14,7 +15,7 @@ from campusflow.storage import load_tickets, save_tickets
 from campusflow.tickets import create_ticket, get_ticket, list_tickets
 from campusflow.workflow import assign_ticket, reopen_ticket, update_status
 
-DEFAULT_DATA_FILE = "data/tickets.json"
+DEFAULT_DATA_FILE = Path(__file__).resolve().parent / "data" / "tickets.json"
 
 
 def display_ticket_summary(ticket: Dict[str, Any]) -> None:
@@ -260,9 +261,9 @@ def run_menu(tickets: List[Dict[str, Any]], data_path: str) -> None:
 10. Understanding Check
 11. Add Follow-up Note
 12. View Ticket Notes
-13. Save and Exit (F7)
+0. Save and Exit
 ======================================================
-Select an option (1-13): """
+Select an option (0-12): """
 
     while True:
         try:
@@ -291,28 +292,50 @@ Select an option (1-13): """
                 handle_add_note(tickets, data_path)
             elif choice == "12":
                 handle_view_notes(tickets)
-            elif choice in {"13", "exit", "quit", "q"}:
-                save_tickets(tickets, data_path)
-                print("\n[CampusFlow] Tickets saved successfully. Goodbye!\n")
-                break
+            elif choice in {"0", "exit", "quit", "q"}:
+                confirmation = input("Are you sure you want to save and exit? (y/n): ").strip().lower()
+                if confirmation == "y":
+                    save_tickets(tickets, data_path)
+                    print("\n[CampusFlow] Tickets saved successfully. Goodbye!\n")
+                    break
+                elif confirmation == "n":
+                    print("\n[CampusFlow] Exit cancelled. Returning to menu.\n")
+                else:
+                    print("\n[Warning] Please enter 'y' to confirm or 'n' to cancel.\n")
             else:
-                print(f"\n[Warning] Invalid option '{choice}'. Please select a number between 1 and 13.")
+                print(f"\n[Warning] Invalid option '{choice}'. Please select a number between 0 and 12.")
         except CampusFlowError as err:
             print(f"\n[Operation Failed] {err}")
         except (KeyboardInterrupt, EOFError):
-            print("\n\n[CampusFlow] Interrupted. Saving changes and exiting...")
+            print("\n\n[CampusFlow] Interrupted. Saving changes...")
             try:
                 save_tickets(tickets, data_path)
-            except StorageError:
-                pass
+            except StorageError as first_error:
+                print(f"[CampusFlow] First save attempt failed: {first_error}")
+                print("[CampusFlow] Retrying save once...")
+                try:
+                    save_tickets(tickets, data_path)
+                except StorageError as retry_error:
+                    print(f"[CampusFlow] Retry failed: {retry_error}")
+                    print(
+                        "[CampusFlow Warning] Changes may not have been saved. "
+                        "Please check the ticket file and backups."
+                    )
+                else:
+                    print("[CampusFlow] Tickets saved successfully on retry.")
+            else:
+                print("[CampusFlow] Tickets saved successfully.")
             print("[CampusFlow] Goodbye!\n")
             break
 
 
 def main() -> None:
     """CLI application entrypoint."""
-    data_path = DEFAULT_DATA_FILE
+    data_path = Path(DEFAULT_DATA_FILE).resolve()
     try:
+        if not data_path.exists():
+            save_tickets([], data_path)
+            print(f"[CampusFlow] Created a new empty ticket file at '{data_path}'.")
         tickets = load_tickets(data_path)
         print(f"[CampusFlow] Loaded {len(tickets)} ticket(s) from '{data_path}'.")
     except StorageError as err:

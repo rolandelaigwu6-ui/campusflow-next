@@ -331,7 +331,80 @@ class StorageTests(unittest.TestCase):
             load_tickets(self.storage_file)
         self.assertIn("in_progress but has no assigned staff", str(ctx.exception))
 
+    def test_save_creates_timestamped_backup_of_previous_version(self):
+        """Saving again preserves the previous ticket file in a timestamped backup."""
+        original = [
+            {
+                "id": "T001",
+                "title": "Original title",
+                "category": "Software",
+                "urgency": "low",
+                "affected_users": 1,
+                "priority": "low",
+                "status": "open",
+                "assigned_to": None,
+                "notes": [],
+            }
+        ]
+        updated = copy.deepcopy(original)
+        updated[0]["title"] = "Updated title"
+
+        save_tickets(original, self.storage_file)
+        save_tickets(updated, self.storage_file)
+
+        backup_dir = os.path.join(self.test_dir, "backups")
+        backup_files = (
+            os.listdir(backup_dir) if os.path.isdir(backup_dir) else []
+        )
+
+        self.assertTrue(
+            backup_files,
+            "A timestamped backup should exist after replacing an existing file.",
+        )
+
+        backup_path = os.path.join(backup_dir, backup_files[0])
+        self.assertEqual(load_tickets(backup_path), original)
+        self.assertEqual(load_tickets(self.storage_file), updated)
 
 
+    def test_empty_save_rejects_existing_file_with_invalid_encoding(self):
+        """An empty save must not overwrite a file that cannot be decoded."""
+        with open(self.storage_file, "wb") as file:
+            file.write(b"\\xff\\xfe\\xfa")
+
+        with self.assertRaises(StorageError):
+            save_tickets([], self.storage_file)
+
+        with open(self.storage_file, "rb") as file:
+            self.assertEqual(file.read(), b"\\xff\\xfe\\xfa")
+
+    def test_empty_save_preserves_existing_tickets(self):
+        """An empty save must not erase an existing populated ticket file."""
+        original = [
+            {
+                "id": "T001",
+                "title": "Keep this ticket",
+                "category": "Software",
+                "urgency": "low",
+                "affected_users": 1,
+                "priority": "low",
+                "status": "open",
+                "assigned_to": None,
+                "notes": [],
+            }
+        ]
+        save_tickets(original, self.storage_file)
+
+        with open(self.storage_file, "rb") as file:
+            original_bytes = file.read()
+
+        with self.assertRaises(StorageError):
+            save_tickets([], self.storage_file)
+
+        with open(self.storage_file, "rb") as file:
+            after_attempt_bytes = file.read()
+
+        self.assertEqual(after_attempt_bytes, original_bytes)
+        self.assertEqual(load_tickets(self.storage_file), original)
 if __name__ == "__main__":
     unittest.main()
