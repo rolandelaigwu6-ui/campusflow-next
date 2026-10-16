@@ -144,3 +144,27 @@ class ReliabilityRegressions(unittest.TestCase):
         self.assertEqual(report['by_category']['Network'], 1)
         self.assertEqual(report['resolution_percentage'], 0.0)
         self.assertEqual(self.tickets, before)
+
+    def test_empty_save_preserves_populated_file(self):
+        save_tickets(self.tickets, self.path)
+        source = self.path.read_bytes()
+        incoming = []
+        with self.assertRaises(StorageError):
+            save_tickets(incoming, self.path)
+        self.assertEqual(incoming, [])
+        self.assertEqual(self.path.read_bytes(), source)
+        self.assertEqual(load_tickets(self.path), self.tickets)
+
+    def test_empty_save_supports_fresh_and_already_empty_projects(self):
+        save_tickets([], self.path)
+        self.assertEqual(load_tickets(self.path), [])
+        save_tickets([], self.path)
+        self.assertEqual(load_tickets(self.path), [])
+
+    def test_empty_save_preserves_unreadable_or_invalid_source_data(self):
+        for source in (b'{broken JSON', b'{}', b'\xff', b'[{"id": "T001"}]'):
+            with self.subTest(source=source):
+                self.path.write_bytes(source)
+                with self.assertRaises(StorageError):
+                    save_tickets([], self.path)
+                self.assertEqual(self.path.read_bytes(), source)

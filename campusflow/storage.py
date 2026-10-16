@@ -11,7 +11,7 @@ from campusflow.validation import validate_ticket_dict
 
 
 def save_tickets(tickets: List[Dict[str, Any]], filepath: str) -> None:
-    """Atomically save the list of tickets to a JSON file.
+    """Atomically save tickets, rejecting empty replacement of existing records.
 
     Args:
         tickets: List of ticket dictionaries.
@@ -31,6 +31,17 @@ def save_tickets(tickets: List[Dict[str, Any]], filepath: str) -> None:
         if tid in seen_ids:
             raise StorageError(f"Cannot save tickets: Duplicate ticket ID '{tid}' detected.")
         seen_ids.add(tid)
+
+    # There is no delete-all operation in CampusFlow. An empty collection may
+    # initialize a fresh file or resave an empty project, but must not erase
+    # existing tickets. Validate existing data before allowing empty replacement;
+    # malformed/unreadable files are preserved and reported through StorageError.
+    if not tickets and os.path.exists(filepath):
+        if load_tickets(filepath):
+            raise StorageError(
+                "Refusing to overwrite existing tickets with an empty collection. "
+                "Restart the application to reload the saved tickets."
+            )
 
     dir_name = os.path.dirname(filepath)
     if dir_name:

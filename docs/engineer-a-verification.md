@@ -66,3 +66,22 @@ not evidence of an independently devised personal exercise.
 - Engineer B still owns the separate sorted-search view and their learning notes.
 - Supply individual reflections, quiz demonstration, final merged SHA, and
   fresh-clone test output. These have not been claimed complete here.
+
+
+## PR #4 review follow-up — empty-save protection
+
+Reviewer `maihwe` identified a potential overwrite risk: an unexpectedly empty
+in-memory collection could replace an existing populated file with `[]`.
+The regression `test_empty_save_preserves_populated_file` was run before the fix
+and failed with `AssertionError: StorageError not raised`.
+
+`save_tickets` now checks existing storage before an empty save. It permits new
+files and valid empty datasets, rejects populated datasets with `StorageError`,
+and propagates storage validation/read errors without replacing their files.
+This policy fits the current CLI, which has no ticket deletion/reset operation.
+The function signature and JSON format are unchanged. It is not a concurrent
+multi-process locking mechanism; the application remains a local CLI.
+
+Three new tests cover populated-file preservation, fresh/empty project saves,
+and malformed source-file preservation. The integrated suite passes 106 tests.
+This is recorded review-driven implementation evidence, not a claim of approval.

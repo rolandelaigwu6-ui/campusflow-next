@@ -98,3 +98,8 @@ python3 -m unittest discover -s tests -v
 * **Interactive CLI Interface:** (`main.py`)
 
 See [Engineer A verification and integration notes](docs/engineer-a-verification.md) for this reliability change and remaining review evidence.
+
+Empty saves are supported for new projects and files already containing `[]`.
+Because CampusFlow has no delete-all operation, saving an empty collection over
+an existing populated file raises `StorageError` and preserves the original file.
+An empty save also preserves existing malformed or unreadable files.
