@@ -1,0 +1,64 @@
+[
+  {
+    "id": "T001",
+    "title": "Wi-Fi outage in training lab",
+    "category": "Network",
+    "urgency": "high",
+    "affected_users": 12,
+    "priority": "critical",
+    "status": "open",
+    "assigned_to": null,
+    "notes": [
+      {
+        "note_id": "N001",
+        "author": "Demo Operator A",
+        "message": "Access point restart scheduled for investigation."
+      }
+    ]
+  },
+  {
+    "id": "T002",
+    "title": "Laptop keyboard needs replacement",
+    "category": "Hardware",
+    "urgency": "medium",
+    "affected_users": 1,
+    "priority": "medium",
+    "status": "in_progress",
+    "assigned_to": "Demo Operator B",
+    "notes": [
+      {
+        "note_id": "N001",
+        "author": "Demo Operator B",
+        "message": "Replacement keyboard requested from the equipment store."
+      }
+    ]
+  },
+  {
+    "id": "T003",
+    "title": "Learning tool installation completed",
+    "category": "Software",
+    "urgency": "low",
+    "affected_users": 2,
+    "priority": "low",
+    "status": "resolved",
+    "assigned_to": "Demo Operator A",
+    "notes": [
+      {
+        "note_id": "N001",
+        "author": "Demo Operator A",
+        "message": "Installation verified using a dummy learner profile."
+      }
+    ]
+  },
+  {
+    "id": "T004",
+    "title": "Projector cable check",
+    "category": "Other",
+    "urgency": "low",
+    "affected_users": 1,
+    "priority": "low",
+    "status": "open",
+    "assigned_to": null,
+    "notes": []
+  }
+]

@@ -85,3 +85,15 @@ multi-process locking mechanism; the application remains a local CLI.
 Three new tests cover populated-file preservation, fresh/empty project saves,
 and malformed source-file preservation. The integrated suite passes 106 tests.
 This is recorded review-driven implementation evidence, not a claim of approval.
+
+## Fresh-clone storage visibility follow-up
+
+A Codespaces screenshot showed no tickets on a separate main-branch checkout.
+Local runtime data is excluded by Git, so no local tickets are transferred by
+cloning. Previously, merely launching and viewing an empty project did not create
+a JSON file. Startup now initializes missing storage to `[]`, prints its location,
+and anchors the default path to the project rather than the working directory.
+Existing files are loaded without replacement; invalid files still stop startup.
+Three startup regressions cover initialization, reload, and corrupt-file protection.
+The integrated suite passes 109 tests. Cross-machine transfer remains an explicit
+file copy; no shared database or synchronization service was introduced.
