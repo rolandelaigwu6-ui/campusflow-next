@@ -1,0 +1,159 @@
+test_cancelling_exit_returns_to_menu (test_cli.MenuExitTests.test_cancelling_exit_returns_to_menu) ... ok
+test_exit_option_zero_saves_and_exits_when_confirmed (test_cli.MenuExitTests.test_exit_option_zero_saves_and_exits_when_confirmed) ... ok
+test_save_failure_does_not_report_success_or_exit (test_cli.MenuExitTests.test_save_failure_does_not_report_success_or_exit) ... ok
+test_interruption_reports_error_when_save_fails (test_cli.MenuInterruptionTests.test_interruption_reports_error_when_save_fails) ... ok
+test_interruption_reports_success_when_save_succeeds (test_cli.MenuInterruptionTests.test_interruption_reports_success_when_save_succeeds) ... ok
+test_interruption_retries_and_succeeds_after_first_save_failure (test_cli.MenuInterruptionTests.test_interruption_retries_and_succeeds_after_first_save_failure) ... ok
+test_interruption_warns_if_both_save_attempts_fail (test_cli.MenuInterruptionTests.test_interruption_warns_if_both_save_attempts_fail) ... ok
+test_invalid_category_reprompts_until_valid_choice (test_cli.SearchCliTests.test_invalid_category_reprompts_until_valid_choice) ... ok
+test_no_matching_tickets_displays_helpful_message (test_cli.SearchCliTests.test_no_matching_tickets_displays_helpful_message) ... ok
+test_startup_stops_when_storage_cannot_be_loaded (test_cli.SearchCliTests.test_startup_stops_when_storage_cannot_be_loaded) ... ok
+test_corrupt_file_is_preserved_on_startup (test_cli.StartupPersistenceTests.test_corrupt_file_is_preserved_on_startup) ... ok
+test_fresh_start_creates_file_and_displays_location (test_cli.StartupPersistenceTests.test_fresh_start_creates_file_and_displays_location) ... ok
+test_restart_loads_existing_records_without_replacing_file (test_cli.StartupPersistenceTests.test_restart_loads_existing_records_without_replacing_file) ... ok
+test_demo_load_save_and_id_continuity (test_demo_data.DemoDataTests.test_demo_load_save_and_id_continuity) ... ok
+test_demo_never_overwrites_existing_storage (test_demo_data.DemoDataTests.test_demo_never_overwrites_existing_storage) ... ok
+test_case05_valid_note_added_and_note_id_correct (test_notes.TestFollowUpNotes.test_case05_valid_note_added_and_note_id_correct)
+Case 05: Valid note added and assigned N001, then N002. ... ok
+test_case06_blank_or_too_short_note_rejected_without_consuming_id (test_notes.TestFollowUpNotes.test_case06_blank_or_too_short_note_rejected_without_consuming_id)
+Case 06: Blank and too-short notes rejected without consuming an ID. ... ok
+test_case07_note_on_resolved_ticket_rejected_accepted_after_reopen (test_notes.TestFollowUpNotes.test_case07_note_on_resolved_ticket_rejected_accepted_after_reopen)
+Case 07: Note on resolved ticket rejected; note after reopen accepted. ... ok
+test_get_ticket_notes_in_deterministic_order (test_notes.TestFollowUpNotes.test_get_ticket_notes_in_deterministic_order)
+Reading notes for a ticket returns all notes in sequential ID order. ... ok
+test_malformed_notes_rejected_without_mutation (test_notes.TestFollowUpNotes.test_malformed_notes_rejected_without_mutation)
+Adding a note must not overwrite malformed existing notes data. ... ok
+test_missing_notes_key_is_initialized_for_legacy_ticket (test_notes.TestFollowUpNotes.test_missing_notes_key_is_initialized_for_legacy_ticket)
+A legacy ticket with no notes key can still receive a note. ... ok
+test_too_long_note_rejected_without_consuming_id (test_notes.TestFollowUpNotes.test_too_long_note_rejected_without_consuming_id)
+Messages > 300 characters are rejected without consuming an ID. ... ok
+test_unknown_ticket_id_raises_not_found_without_mutation (test_notes.TestFollowUpNotes.test_unknown_ticket_id_raises_not_found_without_mutation)
+Attempting to add or view notes on a nonexistent ID raises TicketNotFoundError. ... ok
+test_case_equivalent_ticket_duplicates_rejected (test_reliability_regressions.ReliabilityRegressions.test_case_equivalent_ticket_duplicates_rejected) ... ok
+test_cli_converts_count_and_preserves_invalid_input_state (test_reliability_regressions.ReliabilityRegressions.test_cli_converts_count_and_preserves_invalid_input_state) ... ok
+test_create_rejects_invalid_counts_without_consuming_id (test_reliability_regressions.ReliabilityRegressions.test_create_rejects_invalid_counts_without_consuming_id) ... ok
+test_empty_save_preserves_populated_file (test_reliability_regressions.ReliabilityRegressions.test_empty_save_preserves_populated_file) ... ok
+test_empty_save_preserves_unreadable_or_invalid_source_data (test_reliability_regressions.ReliabilityRegressions.test_empty_save_preserves_unreadable_or_invalid_source_data) ... ok
+test_empty_save_supports_fresh_and_already_empty_projects (test_reliability_regressions.ReliabilityRegressions.test_empty_save_supports_fresh_and_already_empty_projects) ... ok
+test_invalid_create_fields_preserve_collection (test_reliability_regressions.ReliabilityRegressions.test_invalid_create_fields_preserve_collection) ... ok
+test_invalid_note_ids_rejected (test_reliability_regressions.ReliabilityRegressions.test_invalid_note_ids_rejected) ... ok
+test_invalid_note_shapes_and_duplicates_rejected (test_reliability_regressions.ReliabilityRegressions.test_invalid_note_shapes_and_duplicates_rejected) ... ok
+test_invalid_ticket_ids_rejected (test_reliability_regressions.ReliabilityRegressions.test_invalid_ticket_ids_rejected) ... ok
+test_non_utf8_file_rejected_without_state_loss (test_reliability_regressions.ReliabilityRegressions.test_non_utf8_file_rejected_without_state_loss) ... ok
+test_null_notes_rejected_on_load_and_save (test_reliability_regressions.ReliabilityRegressions.test_null_notes_rejected_on_load_and_save) ... ok
+test_report_tracks_reopen_and_counts_ticket_once_despite_notes (test_reliability_regressions.ReliabilityRegressions.test_report_tracks_reopen_and_counts_ticket_once_despite_notes)
+Cross-module bug-hunter candidate for Engineer B's report module. ... ok
+test_wrong_enum_types_reject_entire_batch (test_reliability_regressions.ReliabilityRegressions.test_wrong_enum_types_reject_entire_batch) ... ok
+test_empty_report_displays_zero_metrics (test_report_cli.ReportCliTests.test_empty_report_displays_zero_metrics) ... ok
+test_report_displays_all_metrics_and_breakdowns (test_report_cli.ReportCliTests.test_report_displays_all_metrics_and_breakdowns) ... ok
+test_empty_queue (test_reports.ReportsTests.test_empty_queue) ... ok
+test_empty_report_includes_zero_counts (test_reports.ReportsTests.test_empty_report_includes_zero_counts) ... ok
+test_queue_does_not_reorder_or_modify_storage (test_reports.ReportsTests.test_queue_does_not_reorder_or_modify_storage) ... ok
+test_queue_excludes_in_progress_and_resolved (test_reports.ReportsTests.test_queue_excludes_in_progress_and_resolved) ... ok
+test_queue_priority_order (test_reports.ReportsTests.test_queue_priority_order) ... ok
+test_queue_ties_use_numeric_ids_beyond_three_digits (test_reports.ReportsTests.test_queue_ties_use_numeric_ids_beyond_three_digits) ... ok
+test_report_counts_by_category (test_reports.ReportsTests.test_report_counts_by_category) ... ok
+test_report_counts_every_ticket_without_mutation (test_reports.ReportsTests.test_report_counts_every_ticket_without_mutation) ... ok
+test_report_counts_resolved_and_unresolved (test_reports.ReportsTests.test_report_counts_resolved_and_unresolved) ... ok
+test_report_resolution_percentage_and_empty_dataset (test_reports.ReportsTests.test_report_resolution_percentage_and_empty_dataset) ... ok
+test_combined_filters_use_and (test_search.SearchTests.test_combined_filters_use_and) ... ok
+test_empty_filters_return_all_tickets (test_search.SearchTests.test_empty_filters_return_all_tickets) ... ok
+test_invalid_filter_is_rejected (test_search.SearchTests.test_invalid_filter_is_rejected) ... ok
+test_nonmatching_combined_filters_return_empty_list (test_search.SearchTests.test_nonmatching_combined_filters_return_empty_list) ... ok
+test_search_does_not_modify_ticket_collection (test_search.SearchTests.test_search_does_not_modify_ticket_collection) ... ok
+test_title_search_is_case_insensitive_substring (test_search.SearchTests.test_title_search_is_case_insensitive_substring) ... ok
+test_bug_hunter_in_progress_without_assignee_rejected (test_storage.StorageTests.test_bug_hunter_in_progress_without_assignee_rejected)
+Bug-Hunter (Engineer A): Detects invalid lifecycle state in storage. ... ok
+test_bug_hunter_priority_inconsistency_rejected (test_storage.StorageTests.test_bug_hunter_priority_inconsistency_rejected)
+Bug-Hunter (Engineer A): Detects maliciously tampered priority in storage. ... ok
+test_case12_saving_and_loading_preserves_notes_and_next_ids (test_storage.StorageTests.test_case12_saving_and_loading_preserves_notes_and_next_ids)
+Case 12: Saving and loading preserves all notes and guarantees ID continuity. ... ok
+test_case13_duplicate_ticket_id_rejected_without_state_loss (test_storage.StorageTests.test_case13_duplicate_ticket_id_rejected_without_state_loss)
+Duplicate IDs in storage are rejected without mutating existing memory. ... ok
+test_empty_save_preserves_existing_tickets (test_storage.StorageTests.test_empty_save_preserves_existing_tickets)
+An empty save must not erase an existing populated ticket file. ... ok
+test_empty_save_rejects_existing_file_with_invalid_encoding (test_storage.StorageTests.test_empty_save_rejects_existing_file_with_invalid_encoding)
+An empty save must not overwrite a file that cannot be decoded. ... ok
+test_failed_load_validates_migrated_copies (test_storage.StorageTests.test_failed_load_validates_migrated_copies)
+Legacy migration is applied to copies, not decoded source records. ... ok
+test_legacy_ticket_without_notes_is_migrated_on_successful_load (test_storage.StorageTests.test_legacy_ticket_without_notes_is_migrated_on_successful_load)
+A valid legacy ticket receives an empty notes list when loaded. ... ok
+test_load_corrupted_json_raises_storage_error_and_preserves_file (test_storage.StorageTests.test_load_corrupted_json_raises_storage_error_and_preserves_file)
+Corrupted JSON raises StorageError without deleting the corrupted file. ... ok
+test_load_list_with_non_dict_elements_raises_storage_error (test_storage.StorageTests.test_load_list_with_non_dict_elements_raises_storage_error)
+If JSON list contains elements that are not dicts, raise StorageError. ... ok
+test_load_non_existent_file_returns_empty_list (test_storage.StorageTests.test_load_non_existent_file_returns_empty_list)
+Loading from a nonexistent path returns an empty list (fresh start). ... ok
+test_load_non_list_json_raises_storage_error (test_storage.StorageTests.test_load_non_list_json_raises_storage_error)
+If JSON contains a root object that is not a list, raise StorageError. ... ok
+test_save_and_load_round_trip (test_storage.StorageTests.test_save_and_load_round_trip)
+Saving tickets and then loading produces the exact same records. ... ok
+test_save_creates_nested_directories_automatically (test_storage.StorageTests.test_save_creates_nested_directories_automatically)
+save_tickets creates any missing parent directories. ... ok
+test_save_creates_timestamped_backup_of_previous_version (test_storage.StorageTests.test_save_creates_timestamped_backup_of_previous_version)
+Saving again preserves the previous ticket file in a timestamped backup. ... ok
+test_save_non_list_raises_storage_error (test_storage.StorageTests.test_save_non_list_raises_storage_error)
+Passing a non-list to save_tickets raises StorageError. ... ok
+test_create_ticket_populates_all_required_fields (test_tickets.TestTicketCreationAndLookup.test_create_ticket_populates_all_required_fields) ... ok
+test_get_ticket_raises_not_found (test_tickets.TestTicketCreationAndLookup.test_get_ticket_raises_not_found) ... ok
+test_get_ticket_success_and_case_insensitivity (test_tickets.TestTicketCreationAndLookup.test_get_ticket_success_and_case_insensitivity) ... ok
+test_id_generation_with_existing_gaps (test_tickets.TestTicketCreationAndLookup.test_id_generation_with_existing_gaps) ... ok
+test_list_tickets_returns_all (test_tickets.TestTicketCreationAndLookup.test_list_tickets_returns_all) ... ok
+test_sequential_ticket_id_generation (test_tickets.TestTicketCreationAndLookup.test_sequential_ticket_id_generation) ... ok
+test_rule1_high_urgency_and_10_or_more_users_critical (test_tickets.TestTicketPriorityEngine.test_rule1_high_urgency_and_10_or_more_users_critical) ... ok
+test_rule2_high_urgency_or_10_or_more_users_high (test_tickets.TestTicketPriorityEngine.test_rule2_high_urgency_or_10_or_more_users_high) ... ok
+test_rule3_medium_urgency_or_3_or_more_users_medium (test_tickets.TestTicketPriorityEngine.test_rule3_medium_urgency_or_3_or_more_users_medium) ... ok
+test_rule4_all_remaining_valid_tickets_low (test_tickets.TestTicketPriorityEngine.test_rule4_all_remaining_valid_tickets_low) ... ok
+test_normalize_valid_inputs (test_tickets.TestTicketValidation.test_normalize_valid_inputs) ... ok
+test_reject_blank_or_whitespace_title (test_tickets.TestTicketValidation.test_reject_blank_or_whitespace_title) ... ok
+test_reject_boolean_affected_users (test_tickets.TestTicketValidation.test_reject_boolean_affected_users) ... ok
+test_reject_decimal_affected_users (test_tickets.TestTicketValidation.test_reject_decimal_affected_users) ... ok
+test_reject_invalid_category (test_tickets.TestTicketValidation.test_reject_invalid_category) ... ok
+test_reject_invalid_urgency (test_tickets.TestTicketValidation.test_reject_invalid_urgency) ... ok
+test_reject_negative_affected_users (test_tickets.TestTicketValidation.test_reject_negative_affected_users) ... ok
+test_reject_non_numeric_affected_users (test_tickets.TestTicketValidation.test_reject_non_numeric_affected_users) ... ok
+test_reject_zero_affected_users (test_tickets.TestTicketValidation.test_reject_zero_affected_users) ... ok
+test_all_correct_answers_score_six (test_understanding.TestUnderstandingCheck.test_all_correct_answers_score_six) ... ok
+test_all_wrong_answers_score_zero (test_understanding.TestUnderstandingCheck.test_all_wrong_answers_score_zero) ... ok
+test_every_question_has_four_options (test_understanding.TestUnderstandingCheck.test_every_question_has_four_options) ... ok
+test_fewer_than_six_answers_are_rejected (test_understanding.TestUnderstandingCheck.test_fewer_than_six_answers_are_rejected) ... ok
+test_invalid_answer_letter_is_rejected (test_understanding.TestUnderstandingCheck.test_invalid_answer_letter_is_rejected) ... ok
+test_mixed_answers_score_only_correct_responses (test_understanding.TestUnderstandingCheck.test_mixed_answers_score_only_correct_responses) ... ok
+test_no_answers_are_rejected (test_understanding.TestUnderstandingCheck.test_no_answers_are_rejected) ... ok
+test_question_bank_has_six_questions (test_understanding.TestUnderstandingCheck.test_question_bank_has_six_questions) ... ok
+test_empty_explanation_is_retried (test_understanding.TestUnderstandingInteraction.test_empty_explanation_is_retried) ... ok
+test_final_score_is_displayed (test_understanding.TestUnderstandingInteraction.test_final_score_is_displayed) ... ok
+test_invalid_choice_is_retried (test_understanding.TestUnderstandingInteraction.test_invalid_choice_is_retried) ... ok
+test_can_transition_helper (test_validation.TestValidationAndInvariants.test_can_transition_helper)
+can_transition returns True/False accurately without raising exceptions. ... ok
+test_case02_unassigned_open_to_in_progress_rejected_with_unchanged_data (test_validation.TestValidationAndInvariants.test_case02_unassigned_open_to_in_progress_rejected_with_unchanged_data)
+Case 02: Unassigned open -> in_progress rejected with unchanged data. ... ok
+test_case03_resolved_ticket_assignment_mutation_rejected (test_validation.TestValidationAndInvariants.test_case03_resolved_ticket_assignment_mutation_rejected)
+Case 03: Resolved ticket cannot be assigned or mutated without reopening. ... ok
+test_case04_invalid_affected_users_rejected (test_validation.TestValidationAndInvariants.test_case04_invalid_affected_users_rejected)
+Case 04: Invalid affected_users (0, negative, float, boolean, str in strict) rejected. ... ok
+test_validate_category_invariants (test_validation.TestValidationAndInvariants.test_validate_category_invariants)
+Category must be Network, Hardware, Software, or Other (case-insensitive normalized). ... ok
+test_validate_ticket_dict_schema_integrity (test_validation.TestValidationAndInvariants.test_validate_ticket_dict_schema_integrity)
+validate_ticket_dict enforces schema presence, types, and priority consistency. ... ok
+test_validate_title_invariants (test_validation.TestValidationAndInvariants.test_validate_title_invariants)
+Title must be non-empty after trimming. ... ok
+test_validate_urgency_invariants (test_validation.TestValidationAndInvariants.test_validate_urgency_invariants)
+Urgency must be low, medium, or high (case-insensitive normalized). ... ok
+test_assigned_ticket_completes_lifecycle (test_workflow.WorkflowTests.test_assigned_ticket_completes_lifecycle) ... ok
+test_assignment_normalizes_id_and_trims_name (test_workflow.WorkflowTests.test_assignment_normalizes_id_and_trims_name) ... ok
+test_errors_match_shared_cli_exception_contract (test_workflow.WorkflowTests.test_errors_match_shared_cli_exception_contract) ... ok
+test_invalid_id_inputs (test_workflow.WorkflowTests.test_invalid_id_inputs) ... ok
+test_invalid_staff_names_do_not_mutate (test_workflow.WorkflowTests.test_invalid_staff_names_do_not_mutate) ... ok
+test_invalid_statuses_do_not_mutate (test_workflow.WorkflowTests.test_invalid_statuses_do_not_mutate) ... ok
+test_only_resolved_tickets_can_reopen (test_workflow.WorkflowTests.test_only_resolved_tickets_can_reopen) ... ok
+test_reassignment_of_in_progress_ticket (test_workflow.WorkflowTests.test_reassignment_of_in_progress_ticket) ... ok
+test_resolved_ticket_locked_until_explicit_reopen (test_workflow.WorkflowTests.test_resolved_ticket_locked_until_explicit_reopen) ... ok
+test_skipping_and_no_op_transitions_rejected (test_workflow.WorkflowTests.test_skipping_and_no_op_transitions_rejected) ... ok
+test_unassigned_cannot_start (test_workflow.WorkflowTests.test_unassigned_cannot_start) ... ok
+test_unknown_ids_rejected_by_all_operations (test_workflow.WorkflowTests.test_unknown_ids_rejected_by_all_operations) ... ok
+
+----------------------------------------------------------------------
+Ran 121 tests in 0.080s
+
+OK
