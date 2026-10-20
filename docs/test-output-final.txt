@@ -154,6 +154,6 @@ test_unassigned_cannot_start (test_workflow.WorkflowTests.test_unassigned_cannot
 test_unknown_ids_rejected_by_all_operations (test_workflow.WorkflowTests.test_unknown_ids_rejected_by_all_operations) ... ok
 
 ----------------------------------------------------------------------
-Ran 121 tests in 0.080s
+Ran 121 tests in 0.083s
 
 OK
