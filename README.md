@@ -103,3 +103,44 @@ Empty saves are supported for new projects and files already containing `[]`.
 Because CampusFlow has no delete-all operation, saving an empty collection over
 an existing populated file raises `StorageError` and preserves the original file.
 An empty save also preserves existing malformed or unreadable files.
+
+## Ticket data on another computer or in Codespaces
+
+The application uses `data/tickets.json` beside `main.py`, regardless of the
+terminal's working directory. Startup displays its absolute location and creates
+an empty JSON file for a fresh project. Viewing tickets reads the collection
+loaded at startup; successful ticket changes save it immediately.
+
+Git ignores `data/`, so cloning code or opening a new Codespace does not copy
+another installation's tickets. To continue the same dataset, stop the app in
+both places, back up any destination file, and copy the source `data/tickets.json`
+into the destination project's `data/` folder. In Codespaces, create/expand that
+folder and upload the file using Explorer. Restart the application to load it.
+Do not overwrite a different dataset without retaining a backup. This CLI uses
+local JSON storage and does not synchronize records between computers.
+
+## Review saved demonstration tickets in a fresh clone
+
+[examples/demo-tickets.json](examples/demo-tickets.json) is a versioned JSON
+example containing four dummy tickets across open, in-progress, and resolved
+states, with assignments and follow-up notes. It can be inspected directly on
+GitHub without running the application.
+
+In a fresh clone or Codespace, **before starting the application**, run:
+
+```bash
+python prepare_demo.py
+python main.py
+```
+
+Choose **View All Tickets**, then view individual tickets or their notes. Changes
+are saved to the local `data/tickets.json` and are available after restarting.
+New ticket IDs continue at `T005`; T001's next note ID is `N002`.
+
+The preparation command refuses to replace any existing `data/tickets.json`,
+including an empty file. If you already started the app, stop it and retain a
+backup of that file before moving it aside and preparing the demo. The tracked
+example is never changed by this command. To review actual records elsewhere,
+transfer your saved local JSON as described above; demo records are not your
+live dataset. The example and preparation script become available in fresh
+clones once committed, pushed, and included in the branch being cloned.
