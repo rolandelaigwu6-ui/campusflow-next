@@ -5,7 +5,7 @@ from unittest.mock import patch
 from io import StringIO
 from contextlib import redirect_stdout
 
-from main import handle_search_tickets, main
+from main import handle_search_tickets, main, run_menu
 from campusflow.exceptions import StorageError
 
 
@@ -71,6 +71,121 @@ class SearchCliTests(unittest.TestCase):
             "Startup stopped to protect existing data",
             output.getvalue(),
         )
+
+
+class MenuExitTests(unittest.TestCase):
+    def test_exit_option_zero_saves_and_exits_when_confirmed(self):
+        output = StringIO()
+
+        with patch("builtins.input", side_effect=["0", "y"]):
+            with patch("main.save_tickets") as mocked_save:
+                with redirect_stdout(output):
+                    run_menu([], "/tmp/campusflow-test-tickets.json")
+
+        mocked_save.assert_called_once_with(
+            [], "/tmp/campusflow-test-tickets.json"
+        )
+        self.assertIn("Tickets saved successfully", output.getvalue())
+
+    def test_cancelling_exit_returns_to_menu(self):
+        output = StringIO()
+
+        with patch("builtins.input", side_effect=["0", "n", "0", "y"]):
+            with patch("main.save_tickets") as mocked_save:
+                with redirect_stdout(output):
+                    run_menu([], "/tmp/campusflow-test-tickets.json")
+
+        self.assertEqual(mocked_save.call_count, 1)
+        self.assertIn("Exit cancelled", output.getvalue())
+        self.assertIn("Tickets saved successfully", output.getvalue())
+
+
+    def test_save_failure_does_not_report_success_or_exit(self):
+        output = StringIO()
+
+        with patch("builtins.input", side_effect=["0", "y", "0", "y"]):
+            with patch(
+                "main.save_tickets",
+                side_effect=[StorageError("Disk is full"), None],
+            ) as mocked_save:
+                with redirect_stdout(output):
+                    run_menu([], "/tmp/campusflow-test-tickets.json")
+
+        self.assertEqual(mocked_save.call_count, 2)
+        self.assertIn("Disk is full", output.getvalue())
+        self.assertIn("Tickets saved successfully", output.getvalue())
+        self.assertEqual(
+            output.getvalue().count("Tickets saved successfully"), 1
+        )
+
+
+class MenuInterruptionTests(unittest.TestCase):
+    def test_interruption_reports_success_when_save_succeeds(self):
+        output = StringIO()
+
+        with patch("builtins.input", side_effect=KeyboardInterrupt):
+            with patch("main.save_tickets") as mocked_save:
+                with redirect_stdout(output):
+                    run_menu([], "/tmp/campusflow-test-tickets.json")
+
+        mocked_save.assert_called_once_with(
+            [], "/tmp/campusflow-test-tickets.json"
+        )
+        self.assertIn("Tickets saved successfully", output.getvalue())
+        self.assertNotIn("Save failed", output.getvalue())
+
+    def test_interruption_reports_error_when_save_fails(self):
+        output = StringIO()
+
+        with patch("builtins.input", side_effect=KeyboardInterrupt):
+            with patch(
+                "main.save_tickets",
+                side_effect=StorageError("Disk is full"),
+            ) as mocked_save:
+                with redirect_stdout(output):
+                    run_menu([], "/tmp/campusflow-test-tickets.json")
+
+        self.assertEqual(mocked_save.call_count, 2)
+        self.assertIn("First save attempt failed: Disk is full", output.getvalue())
+        self.assertIn("Retry failed: Disk is full", output.getvalue())
+        self.assertIn("Changes may not have been saved", output.getvalue())
+        self.assertNotIn("Tickets saved successfully", output.getvalue())
+
+
+    def test_interruption_retries_and_succeeds_after_first_save_failure(self):
+        output = StringIO()
+
+        with patch("builtins.input", side_effect=KeyboardInterrupt):
+            with patch(
+                "main.save_tickets",
+                side_effect=[StorageError("Temporary disk error"), None],
+            ) as mocked_save:
+                with redirect_stdout(output):
+                    run_menu([], "/tmp/campusflow-test-tickets.json")
+
+        self.assertEqual(mocked_save.call_count, 2)
+        self.assertIn("Retrying save once", output.getvalue())
+        self.assertIn("Tickets saved successfully on retry", output.getvalue())
+        self.assertNotIn("Changes may not have been saved", output.getvalue())
+
+    def test_interruption_warns_if_both_save_attempts_fail(self):
+        output = StringIO()
+
+        with patch("builtins.input", side_effect=KeyboardInterrupt):
+            with patch(
+                "main.save_tickets",
+                side_effect=[
+                    StorageError("First disk error"),
+                    StorageError("Second disk error"),
+                ],
+            ) as mocked_save:
+                with redirect_stdout(output):
+                    run_menu([], "/tmp/campusflow-test-tickets.json")
+
+        self.assertEqual(mocked_save.call_count, 2)
+        self.assertIn("Retry failed: Second disk error", output.getvalue())
+        self.assertIn("Changes may not have been saved", output.getvalue())
+        self.assertNotIn("Tickets saved successfully", output.getvalue())
 
 
 if __name__ == "__main__":

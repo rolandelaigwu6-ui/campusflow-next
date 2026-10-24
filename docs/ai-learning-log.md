@@ -307,3 +307,18 @@ This proves two distinct requirements in one test: (1) the illegal operation was
 
 ### 7. Which AI recommendation did you accept only after verification?
 AI recommended implementing `next_note_id` by storing an incrementing counter `ticket["note_counter"]`. After testing this suggestion, I proved that if validation fails (e.g. blank author), the counter would have already incremented, causing note ID leakage (e.g. skipping from N001 to N003). I rejected the AI's counter suggestion and instead designed a stateless function that inspects the existing `ticket["notes"]` list to calculate the next ID. This guarantees that rejected notes never consume an ID.
+
+## Engineer B — Interaction 1: casefold vs lower for case-insensitive search
+
+**Concept gap:** I needed case-insensitive title matching for search, and I wasn't sure whether `lower()` or `casefold()` is correct.
+
+**My prompt to AI:** "Compare `str.lower()` and `str.casefold()` in Python for case-insensitive string matching. Show a 5-line example unrelated to my project. Then quiz me."
+
+**AI guidance summary:** AI explained that `casefold()` is the Unicode-aware caseless comparison, while `lower()` is locale-simplistic. Suggested example: German `ß`.
+
+**My independent experiment:** In the Python REPL, ran:
+```python
+>>> 'ß'.lower()
+'ß'
+>>> 'ß'.casefold()
+'ss'
